@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://mern-student-management-5ua7.onrender.com";
 
 function App() {
   const [students, setStudents] = useState([]);
