@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import "./App.css";
 
 const API_URL = "https://mern-student-management-5ua7.onrender.com";
 
@@ -7,6 +8,7 @@ function App() {
   const [students, setStudents] = useState([]);
   const [name, setName] = useState("");
   const [department, setDepartment] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const fetchStudents = async () => {
     try {
@@ -24,23 +26,28 @@ function App() {
   const addStudent = async (e) => {
     e.preventDefault();
 
-    if (!name || !department) {
+    if (!name.trim() || !department.trim()) {
       alert("Please enter name and department");
       return;
     }
 
     try {
+      setLoading(true);
+
       await axios.post(`${API_URL}/students`, {
-        name,
-        department,
+        name: name.trim(),
+        department: department.trim(),
       });
 
       setName("");
       setDepartment("");
 
-      fetchStudents();
+      await fetchStudents();
     } catch (error) {
       console.error("Error adding student:", error);
+      alert("Failed to add student");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,123 +57,95 @@ function App() {
       fetchStudents();
     } catch (error) {
       console.error("Error deleting student:", error);
+      alert("Failed to delete student");
     }
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h1>Student Management System</h1>
+    <div className="app">
+      <div className="container">
+        <div className="card">
+          <div className="header">
+            <div className="logo">🎓</div>
 
-        <form onSubmit={addStudent} style={styles.form}>
-          <input
-            type="text"
-            placeholder="Enter student name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={styles.input}
-          />
-
-          <input
-            type="text"
-            placeholder="Enter department"
-            value={department}
-            onChange={(e) => setDepartment(e.target.value)}
-            style={styles.input}
-          />
-
-          <button type="submit" style={styles.addButton}>
-            Add Student
-          </button>
-        </form>
-
-        <h2>Students</h2>
-
-        {students.length === 0 ? (
-          <p>No students found.</p>
-        ) : (
-          students.map((student) => (
-            <div key={student._id} style={styles.student}>
-              <div>
-                <strong>{student.name}</strong>
-                <p>{student.department}</p>
-              </div>
-
-              <button
-                onClick={() => deleteStudent(student._id)}
-                style={styles.deleteButton}
-              >
-                Delete
-              </button>
+            <div>
+              <h1>Student Management</h1>
+              <p>Add and manage student records</p>
             </div>
-          ))
-        )}
+          </div>
+
+          <form onSubmit={addStudent} className="form">
+            <div className="input-group">
+              <label>Student Name</label>
+
+              <input
+                type="text"
+                placeholder="Enter student name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+
+            <div className="input-group">
+              <label>Department</label>
+
+              <input
+                type="text"
+                placeholder="Enter department"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+              />
+            </div>
+
+            <button type="submit" className="add-button" disabled={loading}>
+              {loading ? "Adding..." : "+ Add Student"}
+            </button>
+          </form>
+
+          <div className="students-section">
+            <div className="section-title">
+              <h2>Students</h2>
+              <span>{students.length}</span>
+            </div>
+
+            {students.length === 0 ? (
+              <div className="empty">
+                <div className="empty-icon">👨‍🎓</div>
+                <p>No students found</p>
+                <span>Add your first student above</span>
+              </div>
+            ) : (
+              <div className="student-list">
+                {students.map((student) => (
+                  <div className="student" key={student._id}>
+                    <div className="student-info">
+                      <div className="avatar">
+                        {student.name.charAt(0).toUpperCase()}
+                      </div>
+
+                      <div>
+                        <strong>{student.name}</strong>
+                        <p>{student.department}</p>
+                      </div>
+                    </div>
+
+                    <button
+                      className="delete-button"
+                      onClick={() => deleteStudent(student._id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <p className="footer">MERN Stack • Student Management System</p>
       </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    minHeight: "100vh",
-    backgroundColor: "#f2f2f2",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: "20px",
-  },
-
-  card: {
-    width: "100%",
-    maxWidth: "600px",
-    backgroundColor: "white",
-    padding: "30px",
-    borderRadius: "12px",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-  },
-
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-    marginBottom: "25px",
-  },
-
-  input: {
-    padding: "12px",
-    fontSize: "16px",
-    border: "1px solid #ccc",
-    borderRadius: "6px",
-  },
-
-  addButton: {
-    padding: "12px",
-    backgroundColor: "#2563eb",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "16px",
-  },
-
-  student: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    border: "1px solid #ddd",
-    padding: "15px",
-    marginBottom: "10px",
-    borderRadius: "8px",
-  },
-
-  deleteButton: {
-    padding: "8px 12px",
-    backgroundColor: "#dc2626",
-    color: "white",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-  },
-};
 
 export default App;
